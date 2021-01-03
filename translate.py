@@ -110,7 +110,7 @@ print("Attention result shape: (batch size, units) {}".format(attention_result.s
 print("Attention weights shape: (batch_size, sequence_length, 1) {}".format(attention_weights.shape))
 
 
-
+#  改下注释
 decoder = decoder.Decoder(vocab_tar_size, embedding_dim, units, BATCH_SIZE)
 
 sample_decoder_output, _, _ = decoder(tf.random.uniform((64, 1)),
