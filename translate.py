@@ -3,6 +3,7 @@ import decoder
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import attention
+import optimizer
 from sklearn.model_selection import train_test_split
 import jieba
 import unicodedata
@@ -117,3 +118,46 @@ sample_decoder_output, _, _ = decoder(tf.random.uniform((64, 1)),
                                       sample_hidden, sample_output)
 
 print ('Decoder output shape: (batch_size, vocab size) {}'.format(sample_decoder_output.shape))
+
+checkpoint_dir = './training_checkpoints'
+checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
+checkpoint = tf.train.Checkpoint(optimizer=optimizer.optimizer,
+                                 encoder=encoder,
+                                 decoder=decoder)
+
+# 教师强制 Professor Forcing: A New Algorithm for Training Recurrent Networks
+def train_step(inp, targ, enc_hidden):
+  loss = 0
+
+  with tf.GradientTape() as tape:
+    enc_output, enc_hidden = encoder(inp, enc_hidden)
+
+    dec_hidden = enc_hidden
+
+    dec_input = tf.expand_dims([targ_lang.word_index['<start>']] * BATCH_SIZE, 1)
+
+    # 教师强制 - 将目标词作为下一个输入
+    for t in range(1, targ.shape[1]):
+      # 将编码器输出 （enc_output） 传送至解码器
+      predictions, dec_hidden, _ = decoder(dec_input, dec_hidden, enc_output)
+
+      loss += optimizer.loss_function(targ[:, t], predictions)
+
+      # 使用教师强制
+      dec_input = tf.expand_dims(targ[:, t], 1)
+
+  batch_loss = (loss / int(targ.shape[1]))
+
+  variables = encoder.trainable_variables + decoder.trainable_variables
+
+  gradients = tape.gradient(loss, variables)
+
+  optimizer.optimizer.apply_gradients(zip(gradients, variables))
+
+  return batch_loss
+
+
+enc_hidden = encoder.initialize_hidden_state()
+inp, targ =  next(iter(dataset))
+batch_loss = train_step(inp, targ, enc_hidden)
+print(batch_loss)
