@@ -1,5 +1,4 @@
 import tensorflow as tf
-
 # 定义优化器， 优化器其实就是梯度下降算法的实现,Adam是其中一种实现的梯度下降算法
 optimizer = tf.keras.optimizers.Adam()
 

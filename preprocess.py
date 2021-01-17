@@ -1,18 +1,6 @@
 import tensorflow as tf
-import decoder
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-import attention
-import optimizer
-from sklearn.model_selection import train_test_split
-import jieba
-import unicodedata
 import re
-import numpy as np
-import os
 import io
-import time
-import encoder
 
 def seg_char(sent):
     """
@@ -27,6 +15,9 @@ def seg_char(sent):
     chars = pattern.split(sent)
     chars = [w for w in chars if len(w.strip())>0]
     return chars
+
+def max_length(tensor):
+    return max(len(t) for t in tensor)
 
 # 文本预处理
 def preprocess_sentence(w, type):
@@ -77,8 +68,3 @@ def load_dataset(path, num_examples=None):
     input_tensor, inp_lang_tokenizer = tokenize(inp_lang)
     target_tensor, targ_lang_tokenizer = tokenize(targ_lang)
     return input_tensor, target_tensor, inp_lang_tokenizer, targ_lang_tokenizer
-
-#inp_lang, targ_lang = create_dataset('cmn.txt', 4)
-#print("inp_lang={}, targ_lang={}".format(inp_lang, targ_lang))
-input_tensor, target_tensor, inp_lang_tokenizer, targ_lang_tokenizer = load_dataset("cmn.txt", 4)
-print("input_tensor={}, inp_lang_tokenizer={}".format(input_tensor, inp_lang_tokenizer.index_word))
